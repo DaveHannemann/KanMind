@@ -1,8 +1,9 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, EmailCheckSerializer, UserSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from django.contrib.auth.models import User
 
 class RegisterView(APIView):
     permission_classes = [AllowAny]
@@ -28,6 +29,25 @@ class LoginView(APIView):
             return Response(data)
 
         return Response(serializer.errors, status=400)
+    
+class EmailCheckView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = EmailCheckSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+
+        email = serializer.validated_data["email"]
+
+        user = User.objects.filter(email=email).first()
+
+        if not user:
+            return Response(
+                {"detail": "Email not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        return Response(UserSerializer(user).data)
     
 
 class LogoutView(APIView):

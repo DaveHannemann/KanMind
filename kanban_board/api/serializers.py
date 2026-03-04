@@ -1,0 +1,35 @@
+from rest_framework import serializers
+from kanban_board.models import Board
+from django.contrib.auth.models import User
+
+class BoardSerializer(serializers.ModelSerializer):
+    owner_id = serializers.IntegerField(source="owner.id")
+    member_count = serializers.SerializerMethodField()
+    class Meta:
+        model = Board
+        fields = ["id", "title", "member_count", "ticket_count", "tasks_to_do_count", "tasks_high_prio_count", "owner_id"]
+
+    def get_member_count(self, obj):
+        return obj.members.count()
+
+
+class BoardCreateSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    members = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        many=True
+    )
+
+    def create(self, validated_data):
+        members = validated_data.pop("members")
+        owner = self.context["request"].user
+
+        board = Board.objects.create(
+            title=validated_data["title"],
+            owner=owner
+        )
+
+        board.members.set(members)
+        board.members.add(owner)
+
+        return board

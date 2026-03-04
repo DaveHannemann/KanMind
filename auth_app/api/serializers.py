@@ -5,6 +5,13 @@ from auth_app.models import UserProfile
 from django.contrib.auth import authenticate
 
 
+class UserSerializer(serializers.ModelSerializer):
+    fullname = serializers.CharField(source="profile.fullname")
+
+    class Meta:
+        model = User
+        fields = ["id", "email", "fullname"]
+
 class RegisterSerializer(serializers.Serializer):
 
     fullname = serializers.CharField()
@@ -16,7 +23,7 @@ class RegisterSerializer(serializers.Serializer):
         if data["password"] != data["repeated_password"]:
             raise serializers.ValidationError("Passwords do not match")
 
-        if User.objects.filter(username=data["email"]).exists():
+        if User.objects.filter(email=data["email"]).exists():
             raise serializers.ValidationError("User already exists")
 
         return data
@@ -41,17 +48,17 @@ class RegisterSerializer(serializers.Serializer):
             "token": token.key,
             "fullname": user.profile.fullname,
             "email": user.email,
-            "user_id": user.id,
+            "id": user.id,
         }
 
 
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
         user = authenticate(
-            username=data["username"],
+            username=data["email"],
             password=data["password"]
         )
 
@@ -69,6 +76,9 @@ class LoginSerializer(serializers.Serializer):
         return {
             "token": token.key,
             "fullname": user.profile.fullname,
-            "user_id": user.id,
+            "id": user.id,
             "email": user.email,
         }
+
+class EmailCheckSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
