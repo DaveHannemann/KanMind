@@ -3,28 +3,14 @@ from kanban_board.models import Board
 
 
 class IsBoardMember(BasePermission):
+    message = "403: Verboten. Der Benutzer muss Mitglied des Boards sein."
 
-    def has_permission(self, request, view):
-        board_id = view.kwargs.get("board_id")
+    def has_object_permission(self, request, view, obj):
+        return request.user in obj.members.all()
 
-        if not board_id:
-            return False
-
-        return Board.objects.filter(
-            id=board_id,
-            members=request.user
-        ).exists()
-    
 
 class IsBoardOwner(BasePermission):
+    message = "403: Verboten. Nur der Eigentümer darf diese Aktion ausführen."
 
-    def has_permission(self, request, view):
-        board_id = view.kwargs.get("board_id")
-
-        if not board_id:
-            return False
-
-        return Board.objects.filter(
-            id=board_id,
-            owner=request.user
-        ).exists()
+    def has_object_permission(self, request, view, obj):
+        return obj.owner == request.user

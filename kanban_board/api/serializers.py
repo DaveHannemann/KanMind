@@ -3,7 +3,7 @@ from kanban_board.models import Board
 from django.contrib.auth.models import User
 
 class BoardSerializer(serializers.ModelSerializer):
-    owner_id = serializers.IntegerField(source="owner.id")
+    owner_id = serializers.IntegerField(source="owner.id", read_only=True)
     member_count = serializers.SerializerMethodField()
     class Meta:
         model = Board
