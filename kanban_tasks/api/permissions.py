@@ -7,8 +7,8 @@ class IsBoardMember(BasePermission):
         return request.user in obj.members.all()
 
 
-class IsBoardOwner(BasePermission):
-    message = "403: Verboten. Nur der Eigentümer darf diese Aktion ausführen."
+class IsTaskCreatorOrBoardOwner(BasePermission):
+    message = "403: Nur der Task-Ersteller oder der Board-Owner darf diese Task löschen."
 
     def has_object_permission(self, request, view, obj):
-        return obj.owner == request.user
+        return obj.creator == request.user or obj.board.owner == request.user

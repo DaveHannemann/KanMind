@@ -5,14 +5,15 @@ from kanban_tasks.models import Task
 from kanban_tasks.api.serializers import TaskSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import request, status
-from kanban_tasks.api.permissions import IsBoardMember, IsBoardOwner
+from kanban_tasks.api.permissions import IsBoardMember, IsTaskCreatorOrBoardOwner
 from django.db.models import Count
+from kanban_board.models import Board
 
 
 class TaskView(APIView):
     def get_permissions(self):
         if self.request.method == "DELETE":
-            permission_classes = [IsAuthenticated, IsBoardOwner]
+            permission_classes = [IsAuthenticated, IsTaskCreatorOrBoardOwner]
         else:
             permission_classes = [IsAuthenticated, IsBoardMember]
         return [permission() for permission in permission_classes]
@@ -43,33 +44,30 @@ class TaskView(APIView):
         return Response(serializer.data)
     
     def post(self, request):
-        serializer = TaskSerializer(data=request.data)
+        board = get_object_or_404(Board, id=request.data.get("board"))
+        self.check_object_permissions(request, board)
+
+        serializer = TaskSerializer(data=request.data, context={"board": board})
         serializer.is_valid(raise_exception=True)
 
-        task = serializer.save()
+        task = serializer.save(creator=request.user, board=board)
         task = self.get_queryset().get(id=task.id)
 
         return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
     
     def patch(self, request, task_id):
-        task = get_object_or_404(
-            Task.objects.filter(board__members=request.user),
-            id=task_id
-            )
+        task = get_object_or_404(Task, id=task_id)
         self.check_object_permissions(request, task.board)
 
-        serializer = TaskSerializer(task, data=request.data, partial=True)
+        serializer = TaskSerializer(task, data=request.data, partial=True, context={"board": task.board})
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         return Response(serializer.data)
     
     def delete(self, request, task_id):
-        task = get_object_or_404(
-            Task.objects.filter(board__members=request.user),
-            id=task_id
-            )
-        self.check_object_permissions(request, task.board)
+        task = get_object_or_404(Task, id=task_id)
+        self.check_object_permissions(request, task)
 
         task.delete()
 

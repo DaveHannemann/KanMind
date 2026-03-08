@@ -32,6 +32,13 @@ class Task(models.Model):
     status = models.CharField(max_length=100, choices=STATUS_CHOICES)
     priority = models.CharField(max_length=100, choices=PRIORITY_CHOICES)
 
+    creator = models.ForeignKey(
+    User,
+    on_delete=models.CASCADE,
+    null=True,
+    related_name="created_tasks"
+    )
+
     assignee = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

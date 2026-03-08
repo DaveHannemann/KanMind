@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'kanban_board',
     'kanban_tasks',
+    'kanban_comments',
     'auth_app',
 ]
 

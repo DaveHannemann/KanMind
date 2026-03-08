@@ -4,6 +4,8 @@ from kanban_tasks.models import Task
 
 class UserShortSerializer(serializers.ModelSerializer):
 
+    fullname = serializers.CharField(source="profile.fullname", read_only=True)
+
     class Meta:
         model = User
         fields = ["id", "email", "fullname"]
@@ -46,3 +48,22 @@ class TaskSerializer(serializers.ModelSerializer):
             "due_date",
             "comments_count",
         ]
+        read_only_fields = ["id", "board", "assignee", "reviewer", "comments_count"]
+
+    def validate(self, data):
+        board = self.context["board"]
+
+        assignee = data.get("assignee")
+        reviewer = data.get("reviewer")
+
+        if assignee and not board.members.filter(id=assignee.id).exists():
+            raise serializers.ValidationError({
+                "assignee_id": "User must be a member of this board."
+            })
+
+        if reviewer and not board.members.filter(id=reviewer.id).exists():
+            raise serializers.ValidationError({
+                "reviewer_id": "User must be a member of this board."
+            })
+
+        return data
