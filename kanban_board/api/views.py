@@ -6,12 +6,20 @@ from kanban_board.api.serializers import BoardCreateSerializer, BoardSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from kanban_board.api.permissions import IsBoardMember, IsBoardOwner
+from django.db.models import Count, Q
 
 class BoardView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        return Board.objects.annotate(
+            ticket_count=Count("tasks", distinct=True),
+            tasks_to_do_count=Count("tasks", filter=Q(tasks__status="todo"), distinct=True),
+            tasks_high_prio_count=Count("tasks", filter=Q(tasks__priority="high"), distinct=True)
+        )
+
     def get(self, request):
-        boards = Board.objects.filter(members=request.user)
+        boards = self.get_queryset().filter(members=request.user)
         serializer = BoardSerializer(boards, many=True)
         return Response(serializer.data)
     
@@ -25,7 +33,7 @@ class BoardView(APIView):
 
         board = serializer.save()
 
-        return Response(BoardSerializer(board).data, status=201)
+        return Response(BoardSerializer(board).data, status=status.HTTP_201_CREATED)
     
 
 class SingleBoardView(APIView):
