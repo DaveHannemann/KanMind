@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from kanban_board.models import Board
 from django.contrib.auth.models import User
+from kanban_tasks.api.serializers import BoardTaskSerializer, UserShortSerializer
 
 class BoardSerializer(serializers.ModelSerializer):
     owner_id = serializers.IntegerField(source="owner.id", read_only=True)
@@ -38,3 +39,37 @@ class BoardCreateSerializer(serializers.Serializer):
         board.members.add(owner)
 
         return board
+
+
+class SingleBoardSerializer(serializers.ModelSerializer):
+
+    owner = UserShortSerializer(read_only=True)
+    members = UserShortSerializer(many=True, read_only=True)
+    tasks = BoardTaskSerializer(many=True, read_only=True)
+
+    member_ids = serializers.PrimaryKeyRelatedField(
+    queryset=User.objects.all(),
+    many=True,
+    write_only=True,
+    required=False
+    )
+
+    class Meta:
+        model = Board
+        fields = [
+            "id",
+            "title",
+            "owner",
+            "members",
+            "member_ids",
+            "tasks",
+        ]
+
+    def update(self, instance, validated_data):
+        member_ids = validated_data.pop("member_ids", None)
+
+        if member_ids is not None:
+            instance.members.set(member_ids)
+            instance.members.add(instance.owner)
+
+        return super().update(instance, validated_data)

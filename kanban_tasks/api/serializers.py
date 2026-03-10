@@ -67,3 +67,27 @@ class TaskSerializer(serializers.ModelSerializer):
             })
 
         return data
+
+class BoardTaskSerializer(serializers.ModelSerializer):
+
+    assignee = UserShortSerializer(read_only=True)
+    reviewer = UserShortSerializer(read_only=True)
+
+    comments_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "title",
+            "description",
+            "status",
+            "priority",
+            "assignee",
+            "reviewer",
+            "due_date",
+            "comments_count",
+        ]
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()

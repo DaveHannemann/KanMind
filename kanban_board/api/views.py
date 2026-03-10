@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from kanban_board.models import Board
-from kanban_board.api.serializers import BoardCreateSerializer, BoardSerializer
+from kanban_board.api.serializers import BoardCreateSerializer, BoardSerializer, SingleBoardSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from kanban_board.api.permissions import IsBoardMember, IsBoardOwner
@@ -46,20 +46,28 @@ class SingleBoardView(APIView):
         return [permission() for permission in permission_classes]
 
     def get_object(self, board_id):
-        return get_object_or_404(Board, id=board_id)
+        return get_object_or_404(
+        Board.objects.prefetch_related(
+            "members",
+            "tasks__assignee",
+            "tasks__reviewer",
+            "tasks__comments",
+            ),
+            id=board_id
+        )
 
     def get(self, request, board_id):
         board = self.get_object(board_id)
         self.check_object_permissions(request, board)
 
-        serializer = BoardSerializer(board)
+        serializer = SingleBoardSerializer(board)
         return Response(serializer.data)
 
     def patch(self, request, board_id):
         board = self.get_object(board_id)
         self.check_object_permissions(request, board)
 
-        serializer = BoardSerializer(board, data=request.data, partial=True)
+        serializer = SingleBoardSerializer(board, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
