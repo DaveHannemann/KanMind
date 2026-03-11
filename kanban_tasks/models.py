@@ -91,6 +91,14 @@ class Task(models.Model):
 
     due_date = models.DateField()
 
+    class Meta:
+        #Indexes to optimize queries filtering by board, assignee, and reviewer.
+        indexes = [
+            models.Index(fields=["board"]),
+            models.Index(fields=["assignee"]),
+            models.Index(fields=["reviewer"]),
+        ]
+
     def __str__(self):
         """
         Return the task title for readable representation.
