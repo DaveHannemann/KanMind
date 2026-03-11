@@ -9,9 +9,28 @@ from kanban_board.api.permissions import IsBoardMember, IsBoardOwner
 from django.db.models import Count, Q
 
 class BoardView(APIView):
+    """
+    API endpoint for listing and creating boards.
+
+    GET:
+        Returns all boards where the user is a member.
+
+    POST:
+        Creates a new board.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        """
+        Return boards annotated with task statistics.
+
+        Adds aggregated counts used in the board overview:
+        - total number of tasks
+        - number of tasks with status "todo"
+        - number of tasks with high priority
+        """
+        
         return Board.objects.annotate(
             ticket_count=Count("tasks", distinct=True),
             tasks_to_do_count=Count("tasks", filter=Q(tasks__status="todo"), distinct=True),
@@ -37,6 +56,18 @@ class BoardView(APIView):
     
 
 class SingleBoardView(APIView):
+    """
+    API endpoint for operations on a single board.
+
+    GET:
+        Retrieve board details.
+
+    PATCH:
+        Update board title or members.
+
+    DELETE:
+        Delete a board (only allowed for the owner).
+    """
 
     def get_permissions(self):
         if self.request.method == "DELETE":
