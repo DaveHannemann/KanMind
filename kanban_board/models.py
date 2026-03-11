@@ -24,6 +24,10 @@ class Board(models.Model):
 
     title = models.CharField(max_length=255)
 
+    class Meta:
+        verbose_name = "Board"
+        verbose_name_plural = "Boards"
+
     owner = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
