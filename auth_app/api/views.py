@@ -6,9 +6,35 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.models import User
 
 class RegisterView(APIView):
+    """
+    API endpoint for user registration.
+
+    Permissions:
+        AllowAny
+
+    Request Body:
+        fullname (str)
+        email (str)
+        password (str)
+        repeated_password (str)
+
+    Response:
+        token (str)
+        fullname (str)
+        email (str)
+        id (int)
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Create a new user account.
+
+        Returns authentication token and user information
+        if registration is successful.
+        """
+
         serializer = RegisterSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -19,9 +45,27 @@ class RegisterView(APIView):
     
 
 class LoginView(APIView):
+    """
+    API endpoint for user authentication.
+
+    Permissions:
+        AllowAny
+
+    Request Body:
+        email (str)
+        password (str)
+
+    Returns:
+        authentication token and user information.
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Authenticate a user and return a token.
+        """
+
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -31,9 +75,26 @@ class LoginView(APIView):
         return Response(serializer.errors, status=400)
     
 class EmailCheckView(APIView):
+    """
+    API endpoint for checking if a user with a given email exists.
+
+    Permissions:
+        IsAuthenticated
+
+    Query Parameters:
+        email (str)
+
+    Returns:
+        User information if the email exists.
+    """
+
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        """
+        Check whether a user with the given email exists.
+        """
+
         serializer = EmailCheckSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
 
@@ -48,11 +109,3 @@ class EmailCheckView(APIView):
             )
 
         return Response(UserSerializer(user).data)
-    
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        request.user.auth_token.delete()  # Token löschen
-        return Response({"detail": "Logout erfolgreich. Token wurde gelöscht."}, status=status.HTTP_200_OK)
