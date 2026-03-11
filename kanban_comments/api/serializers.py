@@ -1,9 +1,21 @@
+"""
+Serializers for comment API responses.
+"""
+
 from rest_framework import serializers
-from django.contrib.auth.models import User
 from kanban_comments.models import Comment
-from kanban_tasks.api.serializers import UserShortSerializer
 
 class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for task comments.
+
+    Returned fields:
+        id (int): Comment identifier
+        author (str): Full name of the comment author
+        content (str): Comment text
+        created_at (datetime): Creation timestamp
+    """
+
     author = serializers.CharField(source="author.profile.fullname", read_only=True)
 
     class Meta:
@@ -12,6 +24,10 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "created_at", "author"]
 
     def validate_content(self, value):
+        """
+        Ensure that comments are not empty or only whitespace.
+        """
+        
         if not value.strip():
             raise serializers.ValidationError("Comment cannot be empty.")
         return value
