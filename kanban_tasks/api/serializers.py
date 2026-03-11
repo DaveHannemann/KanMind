@@ -3,6 +3,12 @@ from django.contrib.auth.models import User
 from kanban_tasks.models import Task
 
 class UserShortSerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for user information.
+
+    Used inside task responses to return basic
+    information about assigned users.
+    """
 
     fullname = serializers.CharField(source="profile.fullname", read_only=True)
 
@@ -12,6 +18,14 @@ class UserShortSerializer(serializers.ModelSerializer):
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating, updating and retrieving tasks.
+
+    Includes nested user representations for assignee and reviewer
+    while allowing assignment via their user IDs.
+
+    Returned fields include the number of comments attached to the task.
+    """
 
     assignee = UserShortSerializer(read_only=True)
     reviewer = UserShortSerializer(read_only=True)
@@ -51,6 +65,13 @@ class TaskSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "board", "assignee", "reviewer", "comments_count"]
 
     def validate(self, data):
+        """
+        Ensure that assigned users belong to the board.
+
+        Prevents assigning tasks to users that are not
+        members of the board.
+        """
+
         board = self.context["board"]
 
         assignee = data.get("assignee")
@@ -69,6 +90,10 @@ class TaskSerializer(serializers.ModelSerializer):
         return data
 
 class BoardTaskSerializer(serializers.ModelSerializer):
+    """
+    Simplified task serializer used when returning
+    tasks within a board detail view.
+    """
 
     assignee = UserShortSerializer(read_only=True)
     reviewer = UserShortSerializer(read_only=True)
@@ -90,4 +115,8 @@ class BoardTaskSerializer(serializers.ModelSerializer):
         ]
 
     def get_comments_count(self, obj):
+        """
+        Return the number of comments associated with the task.
+        """
+        
         return obj.comments.count()

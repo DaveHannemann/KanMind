@@ -1,11 +1,45 @@
+"""
+Database model for Kanban tasks.
+"""
+
 from django.db import models
 from django.contrib.auth.models import User
 
-
-# Create your models here.
-
-
 class Task(models.Model):
+    """
+    Represents a task within a Kanban board.
+
+    A task belongs to a board and can be assigned to users
+    for implementation and review.
+
+    Fields:
+        board (Board):
+            The board this task belongs to.
+
+        title (str):
+            Short title describing the task.
+
+        description (str):
+            Detailed task description.
+
+        status (str):
+            Current workflow status of the task.
+
+        priority (str):
+            Importance level of the task.
+
+        creator (User):
+            User who created the task.
+
+        assignee (User):
+            User responsible for implementing the task.
+
+        reviewer (User):
+            User responsible for reviewing the task.
+
+        due_date (date):
+            Deadline for completing the task.
+    """
 
     STATUS_CHOICES = [
         ("todo", "Todo"),
@@ -58,4 +92,8 @@ class Task(models.Model):
     due_date = models.DateField()
 
     def __str__(self):
+        """
+        Return the task title for readable representation.
+        """
+        
         return self.title

@@ -11,6 +11,26 @@ from kanban_board.models import Board
 
 
 class TaskView(APIView):
+    """
+    API endpoint for managing tasks.
+
+    GET:
+        Returns all tasks visible to the user.
+
+        Optional filters:
+        - assigned_to_me
+        - reviewing
+
+    POST:
+        Create a new task within a board.
+
+    PATCH:
+        Update an existing task.
+
+    DELETE:
+        Delete a task (only creator or board owner).
+    """
+
     def get_permissions(self):
         if self.request.method == "DELETE":
             permission_classes = [IsAuthenticated, IsTaskCreatorOrBoardOwner]
@@ -19,6 +39,17 @@ class TaskView(APIView):
         return [permission() for permission in permission_classes]
     
     def get_queryset(self):
+        """
+        Return tasks with related users and comment statistics.
+
+        Uses select_related to avoid additional queries for:
+        - assignee
+        - reviewer
+        - board
+
+        Also annotates the number of comments per task.
+        """
+        
         return Task.objects.select_related(
             "assignee",
             "reviewer",
