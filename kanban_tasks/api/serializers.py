@@ -34,14 +34,16 @@ class TaskSerializer(serializers.ModelSerializer):
         queryset=User.objects.all(),
         source="assignee",
         write_only=True,
-        required=False
+        required=False,
+        allow_null=True
     )
 
     reviewer_id = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all(),
         source="reviewer",
         write_only=True,
-        required=False
+        required=False,
+        allow_null=True
     )
 
     comments_count = serializers.IntegerField(read_only=True)

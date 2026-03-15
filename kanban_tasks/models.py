@@ -4,6 +4,17 @@ Database model for Kanban tasks.
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Count
+
+class TaskQuerySet(models.QuerySet):
+    def with_related(self):
+        return self.select_related(
+            "assignee",
+            "reviewer",
+            "board"
+        ).annotate(
+            comments_count=Count("comments")
+        )
 
 class Task(models.Model):
     """
@@ -41,9 +52,11 @@ class Task(models.Model):
             Deadline for completing the task.
     """
 
+    objects = TaskQuerySet.as_manager()
+
     STATUS_CHOICES = [
-        ("todo", "Todo"),
-        ("in_progress", "In Progress"),
+        ("to-do", "Todo"),
+        ("in-progress", "In Progress"),
         ("review", "Review"),
         ("done", "Done"),
     ]
@@ -89,7 +102,7 @@ class Task(models.Model):
         related_name="reviewed_tasks"
     )
 
-    due_date = models.DateField()
+    due_date = models.DateField(null=True, blank=True)
 
     class Meta:
         #Indexes to optimize queries filtering by board, assignee, and reviewer.

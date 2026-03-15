@@ -4,9 +4,8 @@ from rest_framework.response import Response
 from kanban_tasks.models import Task
 from kanban_tasks.api.serializers import TaskSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import request, status
+from rest_framework import status
 from kanban_tasks.api.permissions import IsBoardMember, IsTaskCreatorOrBoardOwner
-from django.db.models import Count
 from kanban_board.models import Board
 
 
@@ -38,38 +37,9 @@ class TaskView(APIView):
             permission_classes = [IsAuthenticated, IsBoardMember]
         return [permission() for permission in permission_classes]
     
-    def get_queryset(self):
-        """
-        Return tasks with related users and comment statistics.
-
-        Uses select_related to avoid additional queries for:
-        - assignee
-        - reviewer
-        - board
-
-        Also annotates the number of comments per task.
-        """
-        
-        return Task.objects.select_related(
-            "assignee",
-            "reviewer",
-            "board"
-        ).annotate(
-            comments_count=Count("comments")
-        )
 
     def get(self, request):
-        tasks = self.get_queryset().filter(board__members=request.user)
-
-        assigned = request.query_params.get("assigned_to_me")
-        reviewing = request.query_params.get("reviewing")
-
-        if assigned:
-            tasks = tasks.filter(assignee=request.user)
-
-        if reviewing:
-            tasks = tasks.filter(reviewer=request.user)
-
+        tasks = Task.objects.with_related().filter(board__members=request.user)
         serializer = TaskSerializer(tasks, many=True)
 
         return Response(serializer.data)
@@ -103,3 +73,23 @@ class TaskView(APIView):
         task.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class AssignedTasksView(APIView):
+
+    permission_classes = [IsAuthenticated, IsBoardMember]
+
+    def get(self, request):
+        tasks = Task.objects.with_related().filter(assignee=request.user)
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
+    
+class ReviewerTasksView(APIView):
+
+    permission_classes = [IsAuthenticated, IsBoardMember]
+
+    def get(self, request):
+        tasks = Task.objects.with_related().filter(reviewer=request.user)
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)

@@ -12,10 +12,16 @@ class IsBoardMember(BasePermission):
 
     message = "403: Verboten. Der Benutzer muss Mitglied des Boards sein."
 
+
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.members.all()
 
+        if hasattr(obj, "members"):
+            return request.user in obj.members.all()
 
+        if hasattr(obj, "board"):
+            return request.user in obj.board.members.all()
+
+        return False
 class IsTaskCreatorOrBoardOwner(BasePermission):
     """
     Allows task deletion only for:
