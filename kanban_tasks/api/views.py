@@ -52,7 +52,7 @@ class TaskView(APIView):
         serializer.is_valid(raise_exception=True)
 
         task = serializer.save(creator=request.user, board=board)
-        task = self.get_queryset().get(id=task.id)
+        task = Task.objects.with_related().get(id=task.id)
 
         return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
     
