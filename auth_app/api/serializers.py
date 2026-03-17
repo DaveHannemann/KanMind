@@ -24,12 +24,12 @@ class UserSerializer(serializers.ModelSerializer):
         email (str): Email address of the user
         fullname (str): Full name stored in the UserProfile
     """
-
+    user_id = serializers.IntegerField(source="id")
     fullname = serializers.CharField(source="profile.fullname")
 
     class Meta:
         model = User
-        fields = ["id", "email", "fullname"]
+        fields = ["user_id", "email", "fullname"]
 
 class RegisterSerializer(serializers.Serializer):
     """
@@ -114,7 +114,7 @@ class RegisterSerializer(serializers.Serializer):
             "token": token.key,
             "fullname": user.profile.fullname,
             "email": user.email,
-            "id": user.id,
+            "user_id": user.id,
         }
 
 
@@ -184,7 +184,7 @@ class LoginSerializer(serializers.Serializer):
         return {
             "token": token.key,
             "fullname": user.profile.fullname,
-            "id": user.id,
+            "user_id": user.id,
             "email": user.email,
         }
 

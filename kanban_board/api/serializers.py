@@ -95,7 +95,7 @@ class SingleBoardSerializer(serializers.ModelSerializer):
         - tasks belonging to the board
     """
 
-    owner = UserShortSerializer(read_only=True)
+    owner_id = serializers.IntegerField(source="owner.id", read_only=True)
     members = UserShortSerializer(many=True, read_only=True)
     tasks = BoardTaskSerializer(many=True, read_only=True)
 
@@ -111,7 +111,7 @@ class SingleBoardSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "title",
-            "owner",
+            "owner_id",
             "members",
             "member_ids",
             "tasks",
@@ -133,3 +133,16 @@ class SingleBoardSerializer(serializers.ModelSerializer):
             instance.members.add(instance.owner)
 
         return super().update(instance, validated_data)
+    
+class BoardUpdateResponseSerializer(serializers.ModelSerializer):
+    owner_data = UserShortSerializer(source="owner", read_only=True)
+    members_data = UserShortSerializer(source="members", many=True, read_only=True)
+
+    class Meta:
+        model = Board
+        fields = [
+            "id",
+            "title",
+            "owner_data",
+            "members_data",
+        ]

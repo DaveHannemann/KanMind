@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from kanban_board.models import Board
-from kanban_board.api.serializers import BoardCreateSerializer, BoardSerializer, SingleBoardSerializer
+from kanban_board.api.serializers import BoardCreateSerializer, BoardSerializer, BoardUpdateResponseSerializer, SingleBoardSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from kanban_board.api.permissions import IsBoardMember, IsBoardOwner
@@ -51,6 +51,7 @@ class BoardView(APIView):
         serializer.is_valid(raise_exception=True)
 
         board = serializer.save()
+        board = self.get_queryset().get(id=board.id)
 
         return Response(BoardSerializer(board).data, status=status.HTTP_201_CREATED)
     
@@ -102,7 +103,9 @@ class SingleBoardView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(serializer.data)
+        response_serializer = BoardUpdateResponseSerializer(board)
+
+        return Response(response_serializer.data)
 
     def delete(self, request, board_id):
         board = self.get_object(board_id)
