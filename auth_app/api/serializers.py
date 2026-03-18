@@ -197,3 +197,17 @@ class EmailCheckSerializer(serializers.Serializer):
     """
     
     email = serializers.EmailField(required=True)
+    def validate(self, data):
+        try:
+            self.user = User.objects.get(email=data["email"])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found")
+
+        return data
+    
+    def to_representation(self, instance):
+        return {
+            "id": self.user.id,
+            "email": self.user.email,
+            "fullname": self.user.profile.fullname,
+        }

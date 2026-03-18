@@ -99,7 +99,7 @@ class SingleBoardSerializer(serializers.ModelSerializer):
     members = UserShortSerializer(many=True, read_only=True)
     tasks = BoardTaskSerializer(many=True, read_only=True)
 
-    member_ids = serializers.PrimaryKeyRelatedField(
+    members = serializers.PrimaryKeyRelatedField(
     queryset=User.objects.all(),
     many=True,
     write_only=True,
@@ -113,7 +113,6 @@ class SingleBoardSerializer(serializers.ModelSerializer):
             "title",
             "owner_id",
             "members",
-            "member_ids",
             "tasks",
         ]
 
@@ -121,15 +120,15 @@ class SingleBoardSerializer(serializers.ModelSerializer):
         """
         Update board members.
 
-        If member_ids are provided:
+        If members are provided:
         - update members list
         - ensure owner always remains a member
         """
         
-        member_ids = validated_data.pop("member_ids", None)
+        members = validated_data.pop("members", None)
 
-        if member_ids is not None:
-            instance.members.set(member_ids)
+        if members is not None:
+            instance.members.set(members)
             instance.members.add(instance.owner)
 
         return super().update(instance, validated_data)

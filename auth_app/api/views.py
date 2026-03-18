@@ -97,15 +97,4 @@ class EmailCheckView(APIView):
 
         serializer = EmailCheckSerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
-
-        email = serializer.validated_data["email"]
-
-        user = User.objects.filter(email=email).first()
-
-        if not user:
-            return Response(
-                {"detail": "Email not found"},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        return Response(UserSerializer(user).data)
+        return Response(serializer.data)

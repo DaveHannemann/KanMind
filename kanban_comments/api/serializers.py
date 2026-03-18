@@ -10,10 +10,7 @@ class CommentSerializer(serializers.ModelSerializer):
     Serializer for task comments.
 
     Returned fields:
-        id (int): Comment identifier
         author (str): Full name of the comment author
-        content (str): Comment text
-        created_at (datetime): Creation timestamp
     """
 
     author = serializers.CharField(source="author.profile.fullname", read_only=True)
