@@ -23,7 +23,7 @@ This project was created to **practice and understand backend architecture with 
 
 # Technologies
 
-* Python 3.13
+* Python 3.12
 * Django
 * Django Rest Framework
 * Token Authentication
