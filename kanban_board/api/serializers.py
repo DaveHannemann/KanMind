@@ -96,15 +96,13 @@ class SingleBoardSerializer(serializers.ModelSerializer):
     """
 
     owner_id = serializers.IntegerField(source="owner.id", read_only=True)
-    members = UserShortSerializer(many=True, read_only=True)
-    tasks = BoardTaskSerializer(many=True, read_only=True)
 
     members = serializers.PrimaryKeyRelatedField(
-    queryset=User.objects.all(),
-    many=True,
-    write_only=True,
-    required=False
+        queryset=User.objects.all(),
+        many=True
     )
+
+    tasks = BoardTaskSerializer(many=True, read_only=True)
 
     class Meta:
         model = Board
@@ -115,6 +113,19 @@ class SingleBoardSerializer(serializers.ModelSerializer):
             "members",
             "tasks",
         ]
+
+    def to_representation(self, instance):
+        """
+        Override output for members 
+        returns nested user data
+        """
+        representation = super().to_representation(instance)
+
+        representation["members"] = UserShortSerializer(
+            instance.members.all(), many=True
+        ).data
+
+        return representation
 
     def update(self, instance, validated_data):
         """
