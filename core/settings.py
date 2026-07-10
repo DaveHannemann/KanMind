@@ -154,3 +154,8 @@ CORS_ALLOWED_ORIGINS = os.getenv(
 ).split(",")
 
 APPEND_SLASH = False
+
+CSRF_TRUSTED_ORIGINS = os.getenv(
+    "CSRF_TRUSTED_ORIGINS",
+    ""
+).split(",")
